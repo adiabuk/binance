@@ -102,10 +102,13 @@ def klines(symbol, interval, **kwargs):
 def balances():
     """Get current balances for all symbols."""
     data = signedRequest("GET", "/api/v3/account", {})
+    if 'msg' in data:
+        raise ValueError("Error from exchange: {}".format(data['msg']))
+
     return {d["asset"]: {
         "free": d["free"],
         "locked": d["locked"],
-    } for d in data["balances"]}
+    } for d in data.get("balances", [])}
 
 
 def order(symbol, side, quantity, price, orderType=LIMIT, timeInForce=GTC,
