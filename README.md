@@ -1,4 +1,4 @@
-# Binance API client in Python
+# Simple Binance API client in Python
 
 - Does not require an api key for public methods
 - Compatible with Python 2.7-3.6
