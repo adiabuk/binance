@@ -133,10 +133,10 @@ def order(symbol, side, quantity, price, orderType=LIMIT, timeInForce=GTC,
     """
     params = {
         "symbol": symbol,
-        "side": formatNumber(side),
+        "side": side,
         "type": orderType,
         "timeInForce": timeInForce,
-        "quantity": quantity,
+        "quantity": formatNumber(quantity),
         "price": formatNumber(price),
     }
     params.update(kwargs)
