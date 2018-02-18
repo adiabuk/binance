@@ -231,7 +231,10 @@ def myTrades(symbol, **kwargs):
 
 def request(method, path, params=None):
     resp = requests.request(method, ENDPOINT + path, params=params)
-    return resp.json()
+    data = resp.json()
+    if "msg" in data:
+        logging.error(data['msg'])
+    return data
 
 
 def signedRequest(method, path, params):
