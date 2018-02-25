@@ -11,7 +11,8 @@ except ImportError:
     from urllib.parse import urlencode
 
 
-ENDPOINT = "https://www.binance.com"
+ENDPOINT = "https://us.binance.com"
+#ENDPOINT = "https://www.binance.com"
 
 BUY = "BUY"
 SELL = "SELL"
