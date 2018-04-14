@@ -11,8 +11,8 @@ except ImportError:
     from urllib.parse import urlencode
 
 
-ENDPOINT = "https://us.binance.com"
-#ENDPOINT = "https://www.binance.com"
+#ENDPOINT = "https://us.binance.com"
+ENDPOINT = "https://www.binance.com"
 
 BUY = "BUY"
 SELL = "SELL"
@@ -112,7 +112,7 @@ def balances():
     } for d in data.get("balances", [])}
 
 
-def order(symbol, side, quantity, price, orderType=LIMIT, timeInForce=GTC,
+def order(symbol, side, quantity, price=None, orderType=LIMIT, timeInForce=GTC,
           test=False, **kwargs):
     """Send in a new order.
 
@@ -132,14 +132,21 @@ def order(symbol, side, quantity, price, orderType=LIMIT, timeInForce=GTC,
         icebergQty (float, str or decimal, optional): Used with iceberg orders.
 
     """
-    params = {
-        "symbol": symbol,
-        "side": side,
-        "type": orderType,
-        "timeInForce": timeInForce,
-        "quantity": formatNumber(quantity),
-        "price": formatNumber(price),
-    }
+    if orderType == "MARKET":
+        params = {
+            "symbol": symbol,
+            "side": side,
+            "type": orderType,
+            "quantity": formatNumber(quantity),
+        }
+    else:
+        params = {
+            "symbol": symbol,
+            "side": side,
+            "type": orderType,
+            "quantity": formatNumber(quantity),
+        }
+
     params.update(kwargs)
     path = "/api/v3/order/test" if test else "/api/v3/order"
     data = signedRequest("POST", path, params)
@@ -248,9 +255,11 @@ def signedRequest(method, path, params):
     signature = hmac.new(secret, query.encode("utf-8"),
                          hashlib.sha256).hexdigest()
     query += "&signature={}".format(signature)
+    logging.debug("AMROX %s %s %s", ENDPOINT, path, query)
     resp = requests.request(method,
                             ENDPOINT + path + "?" + query,
                             headers={"X-MBX-APIKEY": options["apiKey"]})
+    logging.debug("AMROX %s", resp)
     data = resp.json()
     if "msg" in data:
         logging.error(data['msg'])
