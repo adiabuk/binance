@@ -116,7 +116,7 @@ def exchange_info():
     """get exchange_info for all sumbols"""
     data = request("GET", "/api/v3/exchangeInfo",{})
 
-    return {d["symbol"]: {"stepSize": d["filters"][2]["stepSize"]} for d in data["symbols"]}
+    return {d["symbol"]: {"stepSize": float(d["filters"][2]["stepSize"])} for d in data["symbols"]}
 
 def order(symbol, side, quantity, price=None, orderType=LIMIT, timeInForce=GTC,
           test=False, **kwargs):
