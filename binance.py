@@ -65,8 +65,8 @@ def depth(symbol, **kwargs):
     params.update(kwargs)
     data = request("GET", "/api/v1/depth", params)
     return {
-        "bids": {px: qty for px, qty, _ in data["bids"]},
-        "asks": {px: qty for px, qty, _ in data["asks"]},
+        "bids": {px: qty for px, qty, in data["bids"]},
+        "asks": {px: qty for px, qty, in data["asks"]},
     }
 
 
