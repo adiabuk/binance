@@ -111,6 +111,18 @@ def balances():
         "locked": d["locked"],
     } for d in data.get("balances", [])}
 
+def margin_balances():
+    """Get current net balances for alsymbols in margin account"""
+
+    data = signedRequest("GET", "/sapi/v1/margin/account", {})
+    if 'msg' in data:
+        raise ValueError("Error from exchange: {}".format(data['msg']))
+
+    return {d["asset"]: {
+        "net": d["netAsset"]
+        } for d in data.get("userAssets", [])}
+
+
 
 def exchange_info():
     """get exchange_info for all sumbols"""
