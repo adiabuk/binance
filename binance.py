@@ -11,8 +11,7 @@ except ImportError:
     from urllib.parse import urlencode
 
 
-#ENDPOINT = "https://us.binance.com"
-ENDPOINT = "https://www.binance.com"
+ENDPOINT = "https://api.binance.com"
 
 BUY = "BUY"
 SELL = "SELL"
@@ -273,11 +272,9 @@ def signedRequest(method, path, params):
     signature = hmac.new(secret, query.encode("utf-8"),
                          hashlib.sha256).hexdigest()
     query += "&signature={}".format(signature)
-    logging.debug("AMROX %s %s %s", ENDPOINT, path, query)
     resp = requests.request(method,
                             ENDPOINT + path + "?" + query,
                             headers={"X-MBX-APIKEY": options["apiKey"]})
-    logging.debug("AMROX %s", resp)
     data = resp.json()
     if "msg" in data:
         logging.error(data['msg'])
