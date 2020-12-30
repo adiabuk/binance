@@ -169,6 +169,38 @@ def order(symbol, side, quantity, price=None, orderType=LIMIT, timeInForce=GTC,
     data = signedRequest("POST", path, params)
     return data
 
+def margin_borrow(symbol, quantity, timeInForce=GTC):
+    params = {
+            "asset": symbol,
+            "amount": formatNumber(quantity)
+            }
+    path="/sapi/v1/margin/loan"
+    data = signedRequest("POST", path, params)
+    return data
+
+def margin_repay(symbol, quantity, timeInForce=GTC):
+    params = {
+            "asset": symbol,
+            "amount": formatNumber(quantity)
+            }
+    path="/sapi/v1/margin/repay"
+    data = signedRequest("POST", path, params)
+    return data
+
+
+
+def margin_order(symbol, side, quantity, price=None, orderType=LIMIT, timeInForce=GTC,
+        test=False, **kwargs):
+    params = {
+            "symbol": symbol,
+            "side": side,
+            "type": orderType,
+            "quantity": formatNumber(quantity),
+            }
+    params.update(kwargs)
+    path="/sapi/v1/margin/test" if test else "/sapi/v1/margin/order"
+    data = signedRequest("POST", path, params)
+    return data
 
 def orderStatus(symbol, **kwargs):
     """Check an order's status.
