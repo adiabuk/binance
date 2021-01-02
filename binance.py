@@ -1,8 +1,11 @@
+"""
+Spot and margin trading module for binance
+"""
 import hmac
 import hashlib
 import logging
-import requests
 import time
+import requests
 try:
     from urllib import urlencode
 
@@ -22,7 +25,7 @@ MARKET = "MARKET"
 GTC = "GTC"
 IOC = "IOC"
 
-options = {}
+OPTIONS = {}
 
 
 def set(apiKey, secret):
@@ -30,8 +33,8 @@ def set(apiKey, secret):
 
     Must be called before any making any signed API calls.
     """
-    options["apiKey"] = apiKey
-    options["secret"] = secret
+    OPTIONS["apiKey"] = apiKey
+    OPTIONS["secret"] = secret
 
 
 def prices():
@@ -125,12 +128,11 @@ def margin_balances():
 
 def exchange_info():
     """get exchange_info for all sumbols"""
-    data = request("GET", "/api/v3/exchangeInfo",{})
+    data = request("GET", "/api/v3/exchangeInfo", {})
 
     return {item['symbol']:item for item in data['symbols']}
 
-def order(symbol, side, quantity, price=None, orderType=LIMIT, timeInForce=GTC,
-          test=False, **kwargs):
+def order(symbol, side, quantity, orderType=LIMIT, test=False, **kwargs):
     """Send in a new order.
 
     Args:
@@ -139,7 +141,6 @@ def order(symbol, side, quantity, price=None, orderType=LIMIT, timeInForce=GTC,
         quantity (float, str or decimal)
         price (float, str or decimal)
         orderType (str, optional): LIMIT or MARKET.
-        timeInForce (str, optional): GTC or IOC.
         test (bool, optional): Creates and validates a new order but does not
             send it into the matching engine. Returns an empty dict if
             successful.
@@ -154,14 +155,14 @@ def order(symbol, side, quantity, price=None, orderType=LIMIT, timeInForce=GTC,
             "symbol": symbol,
             "side": side,
             "type": orderType,
-            "quantity": formatNumber(quantity),
+            "quantity": format_number(quantity),
         }
     else:
         params = {
             "symbol": symbol,
             "side": side,
             "type": orderType,
-            "quantity": formatNumber(quantity),
+            "quantity": format_number(quantity),
         }
 
     params.update(kwargs)
@@ -169,36 +170,46 @@ def order(symbol, side, quantity, price=None, orderType=LIMIT, timeInForce=GTC,
     data = signedRequest("POST", path, params)
     return data
 
-def margin_borrow(symbol, quantity, timeInForce=GTC):
+def margin_borrow(symbol, quantity):
+    """
+    Borrow funds for margin trade
+    """
     params = {
-            "asset": symbol,
-            "amount": formatNumber(quantity)
-            }
-    path="/sapi/v1/margin/loan"
+        "asset": symbol,
+        "amount": format_number(quantity)
+        }
+
+    path = "/sapi/v1/margin/loan"
     data = signedRequest("POST", path, params)
     return data
 
-def margin_repay(symbol, quantity, timeInForce=GTC):
+def margin_repay(symbol, quantity):
+    """
+    Repay borrowed margin funds
+    """
     params = {
-            "asset": symbol,
-            "amount": formatNumber(quantity)
-            }
-    path="/sapi/v1/margin/repay"
+        "asset": symbol,
+        "amount": format_number(quantity)
+        }
+
+    path = "/sapi/v1/margin/repay"
     data = signedRequest("POST", path, params)
     return data
 
 
 
-def margin_order(symbol, side, quantity, price=None, orderType=LIMIT, timeInForce=GTC,
-        test=False, **kwargs):
+def margin_order(symbol, side, quantity, orderType=LIMIT, **kwargs):
+    """
+    Open a margin trade
+    """
     params = {
-            "symbol": symbol,
-            "side": side,
-            "type": orderType,
-            "quantity": formatNumber(quantity),
-            }
+        "symbol": symbol,
+        "side": side,
+        "type": orderType,
+        "quantity": format_number(quantity),
+        }
     params.update(kwargs)
-    path="/sapi/v1/margin/test" if test else "/sapi/v1/margin/order"
+    path = "/sapi/v1/margin/order"
     data = signedRequest("POST", path, params)
     return data
 
@@ -269,7 +280,7 @@ def allOrders(symbol, **kwargs):
     return data
 
 
-def myTrades(symbol, **kwargs):
+def my_trades(symbol, **kwargs):
     """Get trades for a specific account and symbol.
 
     Args:
@@ -287,6 +298,9 @@ def myTrades(symbol, **kwargs):
 
 
 def request(method, path, params=None):
+    """
+    Make request to API and return result
+    """
     resp = requests.request(method, ENDPOINT + path, params=params)
     data = resp.json()
     if "msg" in data:
@@ -295,26 +309,29 @@ def request(method, path, params=None):
 
 
 def signedRequest(method, path, params):
-    if "apiKey" not in options or "secret" not in options:
+    if "apiKey" not in OPTIONS or "secret" not in OPTIONS:
         raise ValueError("Api key and secret must be set")
 
     query = urlencode(sorted(params.items()))
     query += "&timestamp={}".format(int(time.time() * 1000))
-    secret = bytes(options["secret"].encode("utf-8"))
+    secret = bytes(OPTIONS["secret"].encode("utf-8"))
     signature = hmac.new(secret, query.encode("utf-8"),
                          hashlib.sha256).hexdigest()
     query += "&signature={}".format(signature)
     resp = requests.request(method,
                             ENDPOINT + path + "?" + query,
-                            headers={"X-MBX-APIKEY": options["apiKey"]})
+                            headers={"X-MBX-APIKEY": OPTIONS["apiKey"]})
     data = resp.json()
     if "msg" in data:
         logging.error(data['msg'])
     return data
 
 
-def formatNumber(x):
-    if isinstance(x, float):
-        return "{:.8f}".format(x)
+def format_number(number):
+    """
+    Format decimal to 8dp if float
+    """
+    if isinstance(number, float):
+        return "{:.8f}".format(number)
     else:
-        return str(x)
+        return str(number)
