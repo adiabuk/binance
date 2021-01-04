@@ -6,5 +6,5 @@ install:
   - python setup.py install
 # command to run tests
 script:
-  - ls #pytest
+  - ./run_tests.py -v -t lint
 
