@@ -1,3 +1,7 @@
+#!/usr/bin/env python
+"""
+Setup script for binance module
+"""
 from setuptools import setup
 
 setup(name='binance',

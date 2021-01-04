@@ -1,3 +1,4 @@
+#pylint: disable=unnecessary-comprehension,no-else-return
 """
 Spot and margin trading module for binance
 """
@@ -28,12 +29,12 @@ IOC = "IOC"
 OPTIONS = {}
 
 
-def set(apiKey, secret):
+def set(api_key, secret):
     """Set API key and secret.
 
     Must be called before any making any signed API calls.
     """
-    OPTIONS["apiKey"] = apiKey
+    OPTIONS["apiKey"] = api_key
     OPTIONS["secret"] = secret
 
 
@@ -104,7 +105,7 @@ def klines(symbol, interval, **kwargs):
 
 def balances():
     """Get current balances for all symbols."""
-    data = signedRequest("GET", "/api/v3/account", {})
+    data = signed_request("GET", "/api/v3/account", {})
     if 'msg' in data:
         raise ValueError("Error from exchange: {}".format(data['msg']))
 
@@ -116,7 +117,7 @@ def balances():
 def margin_balances():
     """Get current net balances for alsymbols in margin account"""
 
-    data = signedRequest("GET", "/sapi/v1/margin/account", {})
+    data = signed_request("GET", "/sapi/v1/margin/account", {})
     if 'msg' in data:
         raise ValueError("Error from exchange: {}".format(data['msg']))
 
@@ -125,9 +126,12 @@ def margin_balances():
         } for d in data.get("userAssets", [])}
 
 def get_margin_pairs():
+    """
+    Get list of pairs that support margin trading
+    """
     pairs = []
     for key, value in exchange_info().items():
-        if value["isMarginTradingAllowed"] == True:
+        if value["isMarginTradingAllowed"]:
             pairs.append(key)
     return pairs
 
@@ -137,7 +141,7 @@ def exchange_info():
 
     return {item['symbol']:item for item in data['symbols']}
 
-def order(symbol, side, quantity, orderType=LIMIT, test=False, **kwargs):
+def order(symbol, side, quantity, order_type=LIMIT, test=False, **kwargs):
     """Send in a new order.
 
     Args:
@@ -145,7 +149,7 @@ def order(symbol, side, quantity, orderType=LIMIT, test=False, **kwargs):
         side (str): BUY or SELL.
         quantity (float, str or decimal)
         price (float, str or decimal)
-        orderType (str, optional): LIMIT or MARKET.
+        order_type (str, optional): LIMIT or MARKET.
         test (bool, optional): Creates and validates a new order but does not
             send it into the matching engine. Returns an empty dict if
             successful.
@@ -155,24 +159,24 @@ def order(symbol, side, quantity, orderType=LIMIT, test=False, **kwargs):
         icebergQty (float, str or decimal, optional): Used with iceberg orders.
 
     """
-    if orderType == "MARKET":
+    if order_type == "MARKET":
         params = {
             "symbol": symbol,
             "side": side,
-            "type": orderType,
+            "type": order_type,
             "quantity": format_number(quantity),
         }
     else:
         params = {
             "symbol": symbol,
             "side": side,
-            "type": orderType,
+            "type": order_type,
             "quantity": format_number(quantity),
         }
 
     params.update(kwargs)
     path = "/api/v3/order/test" if test else "/api/v3/order"
-    data = signedRequest("POST", path, params)
+    data = signed_request("POST", path, params)
     return data
 
 def margin_borrow(symbol, quantity):
@@ -185,7 +189,7 @@ def margin_borrow(symbol, quantity):
         }
 
     path = "/sapi/v1/margin/loan"
-    data = signedRequest("POST", path, params)
+    data = signed_request("POST", path, params)
     return data
 
 def margin_repay(symbol, quantity):
@@ -198,27 +202,27 @@ def margin_repay(symbol, quantity):
         }
 
     path = "/sapi/v1/margin/repay"
-    data = signedRequest("POST", path, params)
+    data = signed_request("POST", path, params)
     return data
 
 
 
-def margin_order(symbol, side, quantity, orderType=LIMIT, **kwargs):
+def margin_order(symbol, side, quantity, order_type=LIMIT, **kwargs):
     """
     Open a margin trade
     """
     params = {
         "symbol": symbol,
         "side": side,
-        "type": orderType,
+        "type": order_type,
         "quantity": format_number(quantity),
         }
     params.update(kwargs)
     path = "/sapi/v1/margin/order"
-    data = signedRequest("POST", path, params)
+    data = signed_request("POST", path, params)
     return data
 
-def orderStatus(symbol, **kwargs):
+def order_status(symbol, **kwargs):
     """Check an order's status.
 
     Args:
@@ -230,7 +234,7 @@ def orderStatus(symbol, **kwargs):
     """
     params = {"symbol": symbol}
     params.update(kwargs)
-    data = signedRequest("GET", "/api/v3/order", params)
+    data = signed_request("GET", "/api/v3/order", params)
     return data
 
 
@@ -248,11 +252,11 @@ def cancel(symbol, **kwargs):
     """
     params = {"symbol": symbol}
     params.update(kwargs)
-    data = signedRequest("DELETE", "/api/v3/order", params)
+    data = signed_request("DELETE", "/api/v3/order", params)
     return data
 
 
-def openOrders(symbol, **kwargs):
+def open_orders(symbol, **kwargs):
     """Get all open orders on a symbol.
 
     Args:
@@ -262,11 +266,11 @@ def openOrders(symbol, **kwargs):
     """
     params = {"symbol": symbol}
     params.update(kwargs)
-    data = signedRequest("GET", "/api/v3/openOrders", params)
+    data = signed_request("GET", "/api/v3/openOrders", params)
     return data
 
 
-def allOrders(symbol, **kwargs):
+def all_orders(symbol, **kwargs):
     """Get all account orders; active, canceled, or filled.
 
     If orderId is set, it will get orders >= that orderId. Otherwise most
@@ -281,7 +285,7 @@ def allOrders(symbol, **kwargs):
     """
     params = {"symbol": symbol}
     params.update(kwargs)
-    data = signedRequest("GET", "/api/v3/allOrders", params)
+    data = signed_request("GET", "/api/v3/allOrders", params)
     return data
 
 
@@ -298,7 +302,7 @@ def my_trades(symbol, **kwargs):
     """
     params = {"symbol": symbol}
     params.update(kwargs)
-    data = signedRequest("GET", "/api/v3/myTrades", params)
+    data = signed_request("GET", "/api/v3/myTrades", params)
     return data
 
 
@@ -313,7 +317,7 @@ def request(method, path, params=None):
     return data
 
 
-def signedRequest(method, path, params):
+def signed_request(method, path, params):
     if "apiKey" not in OPTIONS or "secret" not in OPTIONS:
         raise ValueError("Api key and secret must be set")
 
