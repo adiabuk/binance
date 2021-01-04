@@ -124,7 +124,12 @@ def margin_balances():
         "net": d["netAsset"]
         } for d in data.get("userAssets", [])}
 
-
+def get_margin_pairs():
+    pairs = []
+    for key, value in exchange_info().items():
+        if value["isMarginTradingAllowed"] == True:
+            pairs.append(key)
+    return pairs
 
 def exchange_info():
     """get exchange_info for all sumbols"""
