@@ -4,6 +4,7 @@ python:
 # command to install dependencies
 install:
   - python setup.py install
+  - pip install gitpython pylint
 # command to run tests
 script:
   - ./run_tests.py -v -t lint
