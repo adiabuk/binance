@@ -2,9 +2,10 @@
 """
 Setup script for binance module
 """
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(name='binance',
+      packages=find_packages(),
       version='0.8',
       py_modules=['binance'],
       description='Binance API wrapper',
