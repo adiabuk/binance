@@ -2,10 +2,11 @@
 """
 Setup script for binance module
 """
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(name='binance',
-      version='0.8',
+      packages=find_packages(),
+      version='0.10',
       py_modules=['binance'],
       description='Binance API wrapper',
       url='https://github.com/toshima/binance',
