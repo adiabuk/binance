@@ -37,12 +37,10 @@ def set(api_key, secret):
     OPTIONS["apiKey"] = api_key
     OPTIONS["secret"] = secret
 
-
 def prices():
     """Get latest prices for all symbols."""
     data = request("GET", "/api/v1/ticker/allPrices")
     return {d["symbol"]: d["price"] for d in data}
-
 
 def tickers():
     """Get best price/qty on the order book for all symbols."""
@@ -53,7 +51,6 @@ def tickers():
         "bidQty": d["bidQty"],
         "askQty": d["askQty"],
     } for d in data}
-
 
 def depth(symbol, **kwargs):
     """Get order book.
@@ -71,7 +68,6 @@ def depth(symbol, **kwargs):
         "bids": {px: qty for px, qty, in data["bids"]},
         "asks": {px: qty for px, qty, in data["asks"]},
     }
-
 
 def klines(symbol, interval, **kwargs):
     """Get kline/candlestick bars for a symbol.
@@ -101,7 +97,6 @@ def klines(symbol, interval, **kwargs):
         "quoteVolume": d[7],
         "numTrades": d[8],
     } for d in data]
-
 
 def balances():
     """Get current balances for all symbols."""
@@ -141,7 +136,7 @@ def exchange_info():
 
     return {item['symbol']:item for item in data['symbols']}
 
-def order(symbol, side, quantity, order_type=LIMIT, test=False, **kwargs):
+def spot_order(symbol, side, quantity, order_type=LIMIT, test=False, **kwargs):
     """Send in a new order.
 
     Args:
@@ -205,8 +200,6 @@ def margin_repay(symbol, quantity):
     data = signed_request("POST", path, params)
     return data
 
-
-
 def margin_order(symbol, side, quantity, order_type=LIMIT, **kwargs):
     """
     Open a margin trade
@@ -237,7 +230,6 @@ def order_status(symbol, **kwargs):
     data = signed_request("GET", "/api/v3/order", params)
     return data
 
-
 def cancel(symbol, **kwargs):
     """Cancel an active order.
 
@@ -255,7 +247,6 @@ def cancel(symbol, **kwargs):
     data = signed_request("DELETE", "/api/v3/order", params)
     return data
 
-
 def open_orders(symbol, **kwargs):
     """Get all open orders on a symbol.
 
@@ -268,7 +259,6 @@ def open_orders(symbol, **kwargs):
     params.update(kwargs)
     data = signed_request("GET", "/api/v3/openOrders", params)
     return data
-
 
 def all_orders(symbol, **kwargs):
     """Get all account orders; active, canceled, or filled.
@@ -288,7 +278,6 @@ def all_orders(symbol, **kwargs):
     data = signed_request("GET", "/api/v3/allOrders", params)
     return data
 
-
 def my_trades(symbol, **kwargs):
     """Get trades for a specific account and symbol.
 
@@ -305,7 +294,6 @@ def my_trades(symbol, **kwargs):
     data = signed_request("GET", "/api/v3/myTrades", params)
     return data
 
-
 def request(method, path, params=None):
     """
     Make request to API and return result
@@ -315,7 +303,6 @@ def request(method, path, params=None):
     if "msg" in data:
         logging.error(data['msg'])
     return data
-
 
 def signed_request(method, path, params):
     if "apiKey" not in OPTIONS or "secret" not in OPTIONS:
@@ -334,7 +321,6 @@ def signed_request(method, path, params):
     if "msg" in data:
         logging.error(data['msg'])
     return data
-
 
 def format_number(number):
     """
