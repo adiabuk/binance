@@ -4,7 +4,6 @@ Spot and margin trading module for binance
 """
 import hmac
 import hashlib
-import logging
 import time
 import requests
 try:
@@ -300,8 +299,6 @@ def request(method, path, params=None):
     """
     resp = requests.request(method, ENDPOINT + path, params=params)
     data = resp.json()
-    if "msg" in data:
-        logging.error(data['msg'])
     return data
 
 def signed_request(method, path, params):
@@ -318,8 +315,6 @@ def signed_request(method, path, params):
                             ENDPOINT + path + "?" + query,
                             headers={"X-MBX-APIKEY": OPTIONS["apiKey"]})
     data = resp.json()
-    if "msg" in data:
-        logging.error(data['msg'])
     return data
 
 def format_number(number):
