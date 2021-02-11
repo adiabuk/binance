@@ -119,9 +119,16 @@ def margin_balances():
         "net": d["netAsset"]
         } for d in data.get("userAssets", [])}
 
-def get_margin_pairs():
+def get_cross_margin_pairs():
     """
-    Get list of pairs that support margin trading
+    Get list of pairs that support cross margin trading
+    """
+    data = signed_request("GET", "/sapi/v1/margin/allPairs", {})
+    return [key['base'] + key['quote'] for key in data]
+
+def get_isolated_margin_pairs():
+    """
+    Get list of pairs that support isolated margin trading
     """
     pairs = []
     for key, value in exchange_info().items():
