@@ -119,6 +119,18 @@ def margin_balances():
         "net": d["netAsset"]
         } for d in data.get("userAssets", [])}
 
+def isolated_balances():
+    """Get current net balances for alsymbols in margin account"""
+
+    data = signed_request("GET", "/sapi/v1/margin/isolated/account", {})
+    if 'msg' in data:
+        raise ValueError("Error from exchange: {}".format(data['msg']))
+
+    return {d["asset"]: {
+        "net": d["netAsset"]
+        } for d in data.get("userAssets", [])}
+
+
 def get_cross_margin_pairs():
     """
     Get list of pairs that support cross margin trading
@@ -180,33 +192,35 @@ def spot_order(symbol, side, quantity, order_type=LIMIT, test=False, **kwargs):
     data = signed_request("POST", path, params)
     return data
 
-def margin_borrow(symbol, quantity):
+def margin_borrow(symbol, quantity, isolated=False):
     """
     Borrow funds for margin trade
     """
     params = {
         "asset": symbol,
-        "amount": format_number(quantity)
+        "amount": format_number(quantity),
+        "isIsolated": isolated,
         }
 
     path = "/sapi/v1/margin/loan"
     data = signed_request("POST", path, params)
     return data
 
-def margin_repay(symbol, quantity):
+def margin_repay(symbol, quantity, isolated=False):
     """
     Repay borrowed margin funds
     """
     params = {
         "asset": symbol,
-        "amount": format_number(quantity)
+        "amount": format_number(quantity),
+        "isIsolated": isolated,
         }
 
     path = "/sapi/v1/margin/repay"
     data = signed_request("POST", path, params)
     return data
 
-def margin_order(symbol, side, quantity, order_type=LIMIT, **kwargs):
+def margin_order(symbol, side, quantity, order_type=LIMIT, isolated=False, **kwargs):
     """
     Open a margin trade
     """
@@ -215,6 +229,7 @@ def margin_order(symbol, side, quantity, order_type=LIMIT, **kwargs):
         "side": side,
         "type": order_type,
         "quantity": format_number(quantity),
+        "isIsolated": isolated,
         }
     params.update(kwargs)
     path = "/sapi/v1/margin/order"
