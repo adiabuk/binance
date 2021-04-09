@@ -189,28 +189,30 @@ def spot_order(symbol, side, quantity, order_type=LIMIT, test=False, **kwargs):
     data = signed_request("POST", path, params)
     return data
 
-def margin_borrow(symbol, quantity, isolated=False):
+def margin_borrow(asset, quantity, isolated=False, symbol=None):
     """
     Borrow funds for margin trade
     """
     params = {
-        "asset": symbol,
+        "asset": asset,
         "amount": format_number(quantity),
         "isIsolated": isolated,
+        "symbol": symbol,
         }
 
     path = "/sapi/v1/margin/loan"
     data = signed_request("POST", path, params)
     return data
 
-def margin_repay(symbol, quantity, isolated=False):
+def margin_repay(symbol, quantity, isolated=False, asset=None):
     """
     Repay borrowed margin funds
     """
     params = {
-        "asset": symbol,
+        "symbol": symbol,
         "amount": format_number(quantity),
         "isIsolated": isolated,
+        "asset": asset,
         }
 
     path = "/sapi/v1/margin/repay"
