@@ -189,7 +189,7 @@ def spot_order(symbol, side, quantity, order_type=LIMIT, test=False, **kwargs):
     data = signed_request("POST", path, params)
     return data
 
-def margin_borrow(asset, quantity, isolated=False, symbol=None):
+def margin_borrow(symbol, quantity, isolated=False, asset=None):
     """
     Borrow funds for margin trade
     """
