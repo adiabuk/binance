@@ -125,7 +125,8 @@ def isolated_balances():
     data = signed_request("GET", "/sapi/v1/margin/isolated/account", {})
     if 'msg' in data:
         raise ValueError("Error from exchange: {}".format(data['msg']))
-    return {d['symbol']: {d['quoteAsset']['asset']: d['quoteAsset']['totalAsset'] } for d in
+
+    return {d['symbol']: {d['quoteAsset']['asset']: d['quoteAsset']['netAsset'] } for d in
             data.get('assets',{})}
 
 def get_cross_margin_pairs():
