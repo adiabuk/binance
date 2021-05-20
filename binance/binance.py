@@ -272,10 +272,19 @@ def get_max_borrow():
     """
     Max amount left to borrow in USDT from cross margin account
     """
-    
+
     params = {"asset": "USDT"}
     data = signed_request("GET", "/sapi/v1/margin/maxBorrowable", params)
     return float(data['amount'])
+
+def get_margin_debt():
+    """
+    Get debts for all cross margin assets
+    """
+    data = signed_request("GET", "/sapi/v1/margin/account", {})
+    borrowed  = {item['asset']: item['borrowed'] for item in data['userAssets']
+                 if item['borrowed'] !='0'}
+    return borrowed
 
 def open_orders(symbol, **kwargs):
     """Get all open orders on a symbol.
