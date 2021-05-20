@@ -268,6 +268,15 @@ def cancel(symbol, **kwargs):
     data = signed_request("DELETE", "/api/v3/order", params)
     return data
 
+def get_max_borrow():
+    """
+    Max amount left to borrow in USDT from cross margin account
+    """
+    
+    params = {"asset": "USDT"}
+    data = signed_request("GET", "/sapi/v1/margin/maxBorrowable", params)
+    return float(data['amount'])
+
 def open_orders(symbol, **kwargs):
     """Get all open orders on a symbol.
 
