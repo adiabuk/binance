@@ -6,7 +6,7 @@ from setuptools import setup, find_packages
 
 setup(name='binance',
       packages=find_packages(),
-      version='0.17',
+      version='0.18',
       py_modules=['binance'],
       description='Binance API wrapper',
       url='https://github.com/toshima/binance',
