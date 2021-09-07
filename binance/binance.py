@@ -126,7 +126,8 @@ def isolated_balances():
     if 'msg' in data:
         raise ValueError("Error from exchange: {}".format(data['msg']))
 
-    return {d['symbol']: {d['quoteAsset']['asset']: d['quoteAsset']['netAsset'] } for d in
+    return {d['symbol']: {d['quoteAsset']['asset']: d['quoteAsset']['netAsset'],
+                          d['baseAsset']['asset']: d['baseAsset']['netAsset'] } for d in
             data.get('assets',{})}
 
 def get_cross_margin_pairs():
