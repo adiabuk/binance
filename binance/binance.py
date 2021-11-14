@@ -183,7 +183,7 @@ def spot_order(symbol, side, quantity, order_type=LIMIT, test=False, **kwargs):
             "symbol": symbol,
             "side": side,
             "type": order_type,
-            "quoteOrderQty": format_number(quantity),
+            "quantity": format_number(quantity),
         }
 
     params.update(kwargs)
@@ -229,7 +229,7 @@ def margin_order(symbol, side, quantity, order_type=LIMIT, isolated=False, **kwa
         "symbol": symbol,
         "side": side,
         "type": order_type,
-        "quoteOrderQty": format_number(quantity),
+        "quantity": format_number(quantity),
         "isIsolated": isolated,
         }
     params.update(kwargs)
