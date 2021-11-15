@@ -153,6 +153,15 @@ def exchange_info():
 
     return {item['symbol']:item for item in data['symbols']}
 
+def my_margin_trades(symbol, isolated):
+    """ Get open margin trades """
+    params = {
+            "symbol": symbol,
+            "isIsolated": isolated,
+        }
+    data = signed_request("GET", "/sapi/v1/margin/myTrades", params)
+    return data
+
 def spot_order(symbol, side, quantity, order_type=LIMIT, test=False, **kwargs):
     """Send in a new order.
 
@@ -329,7 +338,7 @@ def my_trades(symbol, **kwargs):
         recvWindow (int, optional)
 
     """
-    params = {"symbol": symbol}
+    params = {"symbol": symbol, "recvWindow": 60000}
     params.update(kwargs)
     data = signed_request("GET", "/api/v3/myTrades", params)
     return data
