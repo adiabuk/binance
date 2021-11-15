@@ -99,7 +99,7 @@ def klines(symbol, interval, **kwargs):
 
 def balances():
     """Get current balances for all symbols."""
-    data = signed_request("GET", "/api/v3/account", {})
+    data = signed_request("GET", "/api/v3/account", {'recvWindow': 60000})
     if 'msg' in data:
         raise ValueError("Error from exchange: {}".format(data['msg']))
 
@@ -111,7 +111,7 @@ def balances():
 def margin_balances():
     """Get current net balances for alsymbols in margin account"""
 
-    data = signed_request("GET", "/sapi/v1/margin/account", {})
+    data = signed_request("GET", "/sapi/v1/margin/account", {'recvWindow': 60000})
     if 'msg' in data:
         raise ValueError("Error from exchange: {}".format(data['msg']))
 
@@ -122,7 +122,7 @@ def margin_balances():
 def isolated_balances():
     """Get current net balances for alsymbols in margin account"""
 
-    data = signed_request("GET", "/sapi/v1/margin/isolated/account", {})
+    data = signed_request("GET", "/sapi/v1/margin/isolated/account", {'recvWindow': 60000})
     if 'msg' in data:
         raise ValueError("Error from exchange: {}".format(data['msg']))
 
