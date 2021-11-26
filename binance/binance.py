@@ -28,7 +28,7 @@ IOC = "IOC"
 OPTIONS = {}
 
 
-def set(api_key, secret):
+def set_keys(api_key, secret):
     """Set API key and secret.
 
     Must be called before any making any signed API calls.
@@ -127,8 +127,8 @@ def isolated_balances():
         raise ValueError("Error from exchange: {}".format(data['msg']))
 
     return {d['symbol']: {d['quoteAsset']['asset']: d['quoteAsset']['netAsset'],
-                          d['baseAsset']['asset']: d['baseAsset']['netAsset'] } for d in
-            data.get('assets',{})}
+                          d['baseAsset']['asset']: d['baseAsset']['netAsset']} for d in
+            data.get('assets', {})}
 
 def get_cross_margin_pairs():
     """
@@ -156,8 +156,8 @@ def exchange_info():
 def my_margin_trades(symbol, isolated):
     """ Get open margin trades """
     params = {
-            "symbol": symbol,
-            "isIsolated": isolated,
+        "symbol": symbol,
+        "isIsolated": isolated,
         }
     data = signed_request("GET", "/sapi/v1/margin/myTrades", params)
     return data
@@ -292,8 +292,8 @@ def get_margin_debt():
     Get debts for all cross margin assets
     """
     data = signed_request("GET", "/sapi/v1/margin/account", {})
-    borrowed  = {item['asset']: item['borrowed'] for item in data['userAssets']
-                 if item['borrowed'] !='0'}
+    borrowed = {item['asset']: item['borrowed'] for item in data['userAssets']
+                if item['borrowed'] != '0'}
     return borrowed
 
 def open_orders(symbol, **kwargs):
@@ -352,6 +352,9 @@ def request(method, path, params=None):
     return data
 
 def signed_request(method, path, params):
+    """
+    Send authenticated request
+    """
     if "apiKey" not in OPTIONS or "secret" not in OPTIONS:
         raise ValueError("Api key and secret must be set")
 
