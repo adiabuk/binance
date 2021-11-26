@@ -14,22 +14,13 @@ except ImportError:
     from urllib.parse import urlencode
 
 class Binance():
-    def __init__(self, test):
+    def __init__(self, api_key, secret, test):
         self.endpoint = "https://testnet.binance.vision" if test else "https://api.binance.com"
         self.buy = "BUY"
         self.sell = "SELL"
         self.limit = "LIMIT"
         self.market = "MARKET"
-        self.options = {}
-
-
-    def set_keys(self, api_key, secret):
-        """Set API key and secret.
-
-        Must be called before any making any signed API calls.
-        """
-        self.options["apiKey"] = api_key
-        self.options["secret"] = secret
+        self.options = {"api_key":api_key, "secret":secret}
 
     def prices(self):
         """Get latest prices for all symbols."""
