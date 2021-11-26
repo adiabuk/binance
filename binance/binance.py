@@ -13,368 +13,361 @@ try:
 except ImportError:
     from urllib.parse import urlencode
 
-
-ENDPOINT = "https://api.binance.com"
-
-BUY = "BUY"
-SELL = "SELL"
-
-LIMIT = "LIMIT"
-MARKET = "MARKET"
-
-GTC = "GTC"
-IOC = "IOC"
-
-OPTIONS = {}
+class Binance():
+    def __init__(self, test):
+        self.endpoint = "https://testnet.binance.vision" if test else "https://api.binance.com"
+        self.buy = "BUY"
+        self.sell = "SELL"
+        self.limit = "LIMIT"
+        self.market = "MARKET"
+        self.options = {}
 
 
-def set_keys(api_key, secret):
-    """Set API key and secret.
+    def set_keys(self, api_key, secret):
+        """Set API key and secret.
 
-    Must be called before any making any signed API calls.
-    """
-    OPTIONS["apiKey"] = api_key
-    OPTIONS["secret"] = secret
+        Must be called before any making any signed API calls.
+        """
+        self.options["apiKey"] = api_key
+        self.options["secret"] = secret
 
-def prices():
-    """Get latest prices for all symbols."""
-    data = request("GET", "/api/v1/ticker/allPrices")
-    return {d["symbol"]: d["price"] for d in data}
+    def prices(self):
+        """Get latest prices for all symbols."""
+        data = self.request("GET", "/api/v1/ticker/allPrices")
+        return {d["symbol"]: d["price"] for d in data}
 
-def tickers():
-    """Get best price/qty on the order book for all symbols."""
-    data = request("GET", "/api/v1/ticker/allBookTickers")
-    return {d["symbol"]: {
-        "bid": d["bidPrice"],
-        "ask": d["askPrice"],
-        "bidQty": d["bidQty"],
-        "askQty": d["askQty"],
-    } for d in data}
+    def tickers(self):
+        """Get best price/qty on the order book for all symbols."""
+        data = self.request("GET", "/api/v1/ticker/allBookTickers")
+        return {d["symbol"]: {
+            "bid": d["bidPrice"],
+            "ask": d["askPrice"],
+            "bidQty": d["bidQty"],
+            "askQty": d["askQty"],
+        } for d in data}
 
-def depth(symbol, **kwargs):
-    """Get order book.
+    def depth(self, symbol, **kwargs):
+        """Get order book.
 
-    Args:
-        symbol (str)
-        limit (int, optional): Default 100. Must be one of 50, 20, 100, 500, 5,
-            200, 10.
+        Args:
+            symbol (str)
+            limit (int, optional): Default 100. Must be one of 50, 20, 100, 500, 5,
+                200, 10.
 
-    """
-    params = {"symbol": symbol}
-    params.update(kwargs)
-    data = request("GET", "/api/v1/depth", params)
-    return {
-        "bids": {px: qty for px, qty, in data["bids"]},
-        "asks": {px: qty for px, qty, in data["asks"]},
-    }
-
-def klines(symbol, interval, **kwargs):
-    """Get kline/candlestick bars for a symbol.
-
-    Klines are uniquely identified by their open time. If startTime and endTime
-    are not sent, the most recent klines are returned.
-
-    Args:
-        symbol (str)
-        interval (str)
-        limit (int, optional): Default 500; max 500.
-        startTime (int, optional)
-        endTime (int, optional)
-
-    """
-    params = {"symbol": symbol, "interval": interval}
-    params.update(kwargs)
-    data = request("GET", "/api/v1/klines", params)
-    return [{
-        "openTime": d[0],
-        "open": d[1],
-        "high": d[2],
-        "low": d[3],
-        "close": d[4],
-        "volume": d[5],
-        "closeTime": d[6],
-        "quoteVolume": d[7],
-        "numTrades": d[8],
-    } for d in data]
-
-def balances():
-    """Get current balances for all symbols."""
-    data = signed_request("GET", "/api/v3/account", {'recvWindow': 60000})
-    if 'msg' in data:
-        raise ValueError("Error from exchange: {}".format(data['msg']))
-
-    return {d["asset"]: {
-        "free": d["free"],
-        "locked": d["locked"],
-    } for d in data.get("balances", [])}
-
-def margin_balances():
-    """Get current net balances for alsymbols in margin account"""
-
-    data = signed_request("GET", "/sapi/v1/margin/account", {'recvWindow': 60000})
-    if 'msg' in data:
-        raise ValueError("Error from exchange: {}".format(data['msg']))
-
-    return {d["asset"]: {
-        "net": d["netAsset"]
-        } for d in data.get("userAssets", [])}
-
-def isolated_balances():
-    """Get current net balances for alsymbols in margin account"""
-
-    data = signed_request("GET", "/sapi/v1/margin/isolated/account", {'recvWindow': 60000})
-    if 'msg' in data:
-        raise ValueError("Error from exchange: {}".format(data['msg']))
-
-    return {d['symbol']: {d['quoteAsset']['asset']: d['quoteAsset']['netAsset'],
-                          d['baseAsset']['asset']: d['baseAsset']['netAsset']} for d in
-            data.get('assets', {})}
-
-def get_cross_margin_pairs():
-    """
-    Get list of pairs that support cross margin trading
-    """
-    data = signed_request("GET", "/sapi/v1/margin/allPairs", {})
-    return [key['base'] + key['quote'] for key in data]
-
-def get_isolated_margin_pairs():
-    """
-    Get list of pairs that support isolated margin trading
-    """
-    pairs = []
-    for key, value in exchange_info().items():
-        if value["isMarginTradingAllowed"]:
-            pairs.append(key)
-    return pairs
-
-def exchange_info():
-    """get exchange_info for all sumbols"""
-    data = request("GET", "/api/v3/exchangeInfo", {})
-
-    return {item['symbol']:item for item in data['symbols']}
-
-def my_margin_trades(symbol, isolated):
-    """ Get open margin trades """
-    params = {
-        "symbol": symbol,
-        "isIsolated": isolated,
+        """
+        params = {"symbol": symbol}
+        params.update(kwargs)
+        data = self.request("GET", "/api/v1/depth", params)
+        return {
+            "bids": {px: qty for px, qty, in data["bids"]},
+            "asks": {px: qty for px, qty, in data["asks"]},
         }
-    data = signed_request("GET", "/sapi/v1/margin/myTrades", params)
-    return data
 
-def spot_order(symbol, side, quantity, order_type=LIMIT, test=False, **kwargs):
-    """Send in a new order.
+    def klines(self, symbol, interval, **kwargs):
+        """Get kline/candlestick bars for a symbol.
 
-    Args:
-        symbol (str)
-        side (str): BUY or SELL.
-        quantity (float, str or decimal)
-        price (float, str or decimal)
-        order_type (str, optional): LIMIT or MARKET.
-        test (bool, optional): Creates and validates a new order but does not
-            send it into the matching engine. Returns an empty dict if
-            successful.
-        newClientOrderId (str, optional): A unique id for the order.
-            Automatically generated if not sent.
-        stopPrice (float, str or decimal, optional): Used with stop orders.
-        icebergQty (float, str or decimal, optional): Used with iceberg orders.
+        Klines are uniquely identified by their open time. If startTime and endTime
+        are not sent, the most recent klines are returned.
 
-    """
-    if order_type == "MARKET":
+        Args:
+            symbol (str)
+            interval (str)
+            limit (int, optional): Default 500; max 500.
+            startTime (int, optional)
+            endTime (int, optional)
+
+        """
+        params = {"symbol": symbol, "interval": interval}
+        params.update(kwargs)
+        data = self.request("GET", "/api/v1/klines", params)
+        return [{
+            "openTime": d[0],
+            "open": d[1],
+            "high": d[2],
+            "low": d[3],
+            "close": d[4],
+            "volume": d[5],
+            "closeTime": d[6],
+            "quoteVolume": d[7],
+            "numTrades": d[8],
+        } for d in data]
+
+    def balances(self):
+        """Get current balances for all symbols."""
+        data = self.signed_request("GET", "/api/v3/account", {'recvWindow': 60000})
+        if 'msg' in data:
+            raise ValueError("Error from exchange: {}".format(data['msg']))
+
+        return {d["asset"]: {
+            "free": d["free"],
+            "locked": d["locked"],
+        } for d in data.get("balances", [])}
+
+    def margin_balances(self):
+        """Get current net balances for alsymbols in margin account"""
+
+        data = self.signed_request("GET", "/sapi/v1/margin/account", {'recvWindow': 60000})
+        if 'msg' in data:
+            raise ValueError("Error from exchange: {}".format(data['msg']))
+
+        return {d["asset"]: {
+            "net": d["netAsset"]
+            } for d in data.get("userAssets", [])}
+
+    def isolated_balances(self):
+        """Get current net balances for alsymbols in margin account"""
+
+        data = self.signed_request("GET", "/sapi/v1/margin/isolated/account", {'recvWindow': 60000})
+        if 'msg' in data:
+            raise ValueError("Error from exchange: {}".format(data['msg']))
+
+        return {d['symbol']: {d['quoteAsset']['asset']: d['quoteAsset']['netAsset'],
+                              d['baseAsset']['asset']: d['baseAsset']['netAsset']} for d in
+                data.get('assets', {})}
+
+    def get_cross_margin_pairs(self):
+        """
+        Get list of pairs that support cross margin trading
+        """
+        data = self.signed_request("GET", "/sapi/v1/margin/allPairs", {})
+        return [key['base'] + key['quote'] for key in data]
+
+    def get_isolated_margin_pairs(self):
+        """
+        Get list of pairs that support isolated margin trading
+        """
+        pairs = []
+        for key, value in self.exchange_info().items():
+            if value["isMarginTradingAllowed"]:
+                pairs.append(key)
+        return pairs
+
+    def exchange_info(self):
+        """get exchange_info for all sumbols"""
+        data = self.request("GET", "/api/v3/exchangeInfo", {})
+
+        return {item['symbol']:item for item in data['symbols']}
+
+    def my_margin_trades(self, symbol, isolated):
+        """ Get open margin trades """
+        params = {
+            "symbol": symbol,
+            "isIsolated": isolated,
+            }
+        data = self.signed_request("GET", "/sapi/v1/margin/myTrades", params)
+        return data
+
+    def spot_order(self, symbol, side, quantity, order_type, **kwargs):
+        """Send in a new order.
+
+        Args:
+            symbol (str)
+            side (str): self.buy or self.sell.
+            quantity (float, str or decimal)
+            price (float, str or decimal)
+            order_type (str, optional): self.limit or self.market.
+            newClientOrderId (str, optional): A unique id for the order.
+                Automatically generated if not sent.
+            stopPrice (float, str or decimal, optional): Used with stop orders.
+            icebergQty (float, str or decimal, optional): Used with iceberg orders.
+
+        """
+        if order_type == "self.market":
+            params = {
+                "symbol": symbol,
+                "side": side,
+                "type": order_type,
+                "quantity": self.format_number(quantity),
+            }
+        else:
+            params = {
+                "symbol": symbol,
+                "side": side,
+                "type": order_type,
+                "quantity": self.format_number(quantity),
+            }
+
+        params.update(kwargs)
+        path = "/api/v3/order"
+        data = self.signed_request("POST", path, params)
+        return data
+
+    def margin_borrow(self, symbol, quantity, isolated=False, asset=None):
+        """
+        Borrow funds for margin trade
+        """
+        params = {
+            "asset": asset,
+            "amount": self.format_number(quantity),
+            "isIsolated": isolated,
+            "symbol": symbol,
+            }
+
+        path = "/sapi/v1/margin/loan"
+        data = self.signed_request("POST", path, params)
+        return data
+
+    def margin_repay(self, symbol, quantity, isolated=False, asset=None):
+        """
+        Repay borrowed margin funds
+        """
+        params = {
+            "symbol": symbol,
+            "amount": self.format_number(quantity),
+            "isIsolated": isolated,
+            "asset": asset,
+            }
+
+        path = "/sapi/v1/margin/repay"
+        data = self.signed_request("POST", path, params)
+        return data
+
+    def margin_order(self, symbol, side, quantity, order_type, isolated=False, **kwargs):
+        """
+        Open a margin trade
+        """
         params = {
             "symbol": symbol,
             "side": side,
             "type": order_type,
-            "quantity": format_number(quantity),
-        }
-    else:
-        params = {
-            "symbol": symbol,
-            "side": side,
-            "type": order_type,
-            "quantity": format_number(quantity),
-        }
+            "quantity": self.format_number(quantity),
+            "isIsolated": isolated,
+            }
+        params.update(kwargs)
+        path = "/sapi/v1/margin/order"
+        data = self.signed_request("POST", path, params)
+        return data
 
-    params.update(kwargs)
-    path = "/api/v3/order/test" if test else "/api/v3/order"
-    data = signed_request("POST", path, params)
-    return data
+    def order_status(self, symbol, **kwargs):
+        """Check an order's status.
 
-def margin_borrow(symbol, quantity, isolated=False, asset=None):
-    """
-    Borrow funds for margin trade
-    """
-    params = {
-        "asset": asset,
-        "amount": format_number(quantity),
-        "isIsolated": isolated,
-        "symbol": symbol,
-        }
+        Args:
+            symbol (str)
+            orderId (int, optional)
+            origClientOrderId (str, optional)
+            recvWindow (int, optional)
 
-    path = "/sapi/v1/margin/loan"
-    data = signed_request("POST", path, params)
-    return data
+        """
+        params = {"symbol": symbol}
+        params.update(kwargs)
+        data = self.signed_request("GET", "/api/v3/order", params)
+        return data
 
-def margin_repay(symbol, quantity, isolated=False, asset=None):
-    """
-    Repay borrowed margin funds
-    """
-    params = {
-        "symbol": symbol,
-        "amount": format_number(quantity),
-        "isIsolated": isolated,
-        "asset": asset,
-        }
+    def cancel(self, symbol, **kwargs):
+        """Cancel an active order.
 
-    path = "/sapi/v1/margin/repay"
-    data = signed_request("POST", path, params)
-    return data
+        Args:
+            symbol (str)
+            orderId (int, optional)
+            origClientOrderId (str, optional)
+            newClientOrderId (str, optional): Used to uniquely identify this
+                cancel. Automatically generated by default.
+            recvWindow (int, optional)
 
-def margin_order(symbol, side, quantity, order_type=LIMIT, isolated=False, **kwargs):
-    """
-    Open a margin trade
-    """
-    params = {
-        "symbol": symbol,
-        "side": side,
-        "type": order_type,
-        "quantity": format_number(quantity),
-        "isIsolated": isolated,
-        }
-    params.update(kwargs)
-    path = "/sapi/v1/margin/order"
-    data = signed_request("POST", path, params)
-    return data
+        """
+        params = {"symbol": symbol}
+        params.update(kwargs)
+        data = self.signed_request("DELETE", "/api/v3/order", params)
+        return data
 
-def order_status(symbol, **kwargs):
-    """Check an order's status.
+    def get_max_borrow(self):
+        """
+        Max amount left to borrow in USDT from cross margin account
+        """
 
-    Args:
-        symbol (str)
-        orderId (int, optional)
-        origClientOrderId (str, optional)
-        recvWindow (int, optional)
+        params = {"asset": "USDT"}
+        data = self.signed_request("GET", "/sapi/v1/margin/maxBorrowable", params)
+        return float(data['amount'])
 
-    """
-    params = {"symbol": symbol}
-    params.update(kwargs)
-    data = signed_request("GET", "/api/v3/order", params)
-    return data
+    def get_margin_debt(self):
+        """
+        Get debts for all cross margin assets
+        """
+        data = self.signed_request("GET", "/sapi/v1/margin/account", {})
+        borrowed = {item['asset']: item['borrowed'] for item in data['userAssets']
+                    if item['borrowed'] != '0'}
+        return borrowed
 
-def cancel(symbol, **kwargs):
-    """Cancel an active order.
+    def open_orders(self, symbol, **kwargs):
+        """Get all open orders on a symbol.
 
-    Args:
-        symbol (str)
-        orderId (int, optional)
-        origClientOrderId (str, optional)
-        newClientOrderId (str, optional): Used to uniquely identify this
-            cancel. Automatically generated by default.
-        recvWindow (int, optional)
+        Args:
+            symbol (str)
+            recvWindow (int, optional)
 
-    """
-    params = {"symbol": symbol}
-    params.update(kwargs)
-    data = signed_request("DELETE", "/api/v3/order", params)
-    return data
+        """
+        params = {"symbol": symbol}
+        params.update(kwargs)
+        data = self.signed_request("GET", "/api/v3/openOrders", params)
+        return data
 
-def get_max_borrow():
-    """
-    Max amount left to borrow in USDT from cross margin account
-    """
+    def all_orders(self, symbol, **kwargs):
+        """Get all account orders; active, canceled, or filled.
 
-    params = {"asset": "USDT"}
-    data = signed_request("GET", "/sapi/v1/margin/maxBorrowable", params)
-    return float(data['amount'])
+        If orderId is set, it will get orders >= that orderId. Otherwise most
+        recent orders are returned.
 
-def get_margin_debt():
-    """
-    Get debts for all cross margin assets
-    """
-    data = signed_request("GET", "/sapi/v1/margin/account", {})
-    borrowed = {item['asset']: item['borrowed'] for item in data['userAssets']
-                if item['borrowed'] != '0'}
-    return borrowed
+        Args:
+            symbol (str)
+            orderId (int, optional)
+            limit (int, optional): Default 500; max 500.
+            recvWindow (int, optional)
 
-def open_orders(symbol, **kwargs):
-    """Get all open orders on a symbol.
+        """
+        params = {"symbol": symbol}
+        params.update(kwargs)
+        data = self.signed_request("GET", "/api/v3/allOrders", params)
+        return data
 
-    Args:
-        symbol (str)
-        recvWindow (int, optional)
+    def my_trades(self, symbol, **kwargs):
+        """Get trades for a specific account and symbol.
 
-    """
-    params = {"symbol": symbol}
-    params.update(kwargs)
-    data = signed_request("GET", "/api/v3/openOrders", params)
-    return data
+        Args:
+            symbol (str)
+            limit (int, optional): Default 500; max 500.
+            fromId (int, optional): TradeId to fetch from. Default gets most recent
+                trades.
+            recvWindow (int, optional)
 
-def all_orders(symbol, **kwargs):
-    """Get all account orders; active, canceled, or filled.
+        """
+        params = {"symbol": symbol, "recvWindow": 60000}
+        params.update(kwargs)
+        data = self.signed_request("GET", "/api/v3/myTrades", params)
+        return data
 
-    If orderId is set, it will get orders >= that orderId. Otherwise most
-    recent orders are returned.
+    def request(self, method, path, params=None):
+        """
+        Make request to API and return result
+        """
+        resp = requests.request(method, self.endpoint + path, params=params)
+        data = resp.json()
+        return data
 
-    Args:
-        symbol (str)
-        orderId (int, optional)
-        limit (int, optional): Default 500; max 500.
-        recvWindow (int, optional)
+    def signed_request(self, method, path, params):
+        """
+        Send authenticated request
+        """
+        if "apiKey" not in self.options or "secret" not in self.options:
+            raise ValueError("Api key and secret must be set")
 
-    """
-    params = {"symbol": symbol}
-    params.update(kwargs)
-    data = signed_request("GET", "/api/v3/allOrders", params)
-    return data
+        query = urlencode(sorted(params.items()))
+        query += "&timestamp={}".format(int(time.time() * 1000))
+        secret = bytes(self.options["secret"].encode("utf-8"))
+        signature = hmac.new(secret, query.encode("utf-8"),
+                             hashlib.sha256).hexdigest()
+        query += "&signature={}".format(signature)
+        resp = requests.request(method,
+                                self.endpoint + path + "?" + query,
+                                headers={"X-MBX-APIKEY": self.options["apiKey"]})
+        data = resp.json()
+        return data
 
-def my_trades(symbol, **kwargs):
-    """Get trades for a specific account and symbol.
-
-    Args:
-        symbol (str)
-        limit (int, optional): Default 500; max 500.
-        fromId (int, optional): TradeId to fetch from. Default gets most recent
-            trades.
-        recvWindow (int, optional)
-
-    """
-    params = {"symbol": symbol, "recvWindow": 60000}
-    params.update(kwargs)
-    data = signed_request("GET", "/api/v3/myTrades", params)
-    return data
-
-def request(method, path, params=None):
-    """
-    Make request to API and return result
-    """
-    resp = requests.request(method, ENDPOINT + path, params=params)
-    data = resp.json()
-    return data
-
-def signed_request(method, path, params):
-    """
-    Send authenticated request
-    """
-    if "apiKey" not in OPTIONS or "secret" not in OPTIONS:
-        raise ValueError("Api key and secret must be set")
-
-    query = urlencode(sorted(params.items()))
-    query += "&timestamp={}".format(int(time.time() * 1000))
-    secret = bytes(OPTIONS["secret"].encode("utf-8"))
-    signature = hmac.new(secret, query.encode("utf-8"),
-                         hashlib.sha256).hexdigest()
-    query += "&signature={}".format(signature)
-    resp = requests.request(method,
-                            ENDPOINT + path + "?" + query,
-                            headers={"X-MBX-APIKEY": OPTIONS["apiKey"]})
-    data = resp.json()
-    return data
-
-def format_number(number):
-    """
-    Format decimal to 8dp if float
-    """
-    if isinstance(number, float):
-        return "{:.8f}".format(number)
-    else:
-        return str(number)
+    @staticmethod
+    def format_number(number):
+        """
+        Format decimal to 8dp if float
+        """
+        if isinstance(number, float):
+            return "{:.8f}".format(number)
+        else:
+            return str(number)
