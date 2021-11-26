@@ -14,7 +14,7 @@ except ImportError:
     from urllib.parse import urlencode
 
 class Binance():
-    def __init__(self, api_key, secret, test):
+    def __init__(self, api_key=None, secret=None, test=False):
         self.endpoint = "https://testnet.binance.vision" if test else "https://api.binance.com"
         self.buy = "BUY"
         self.sell = "SELL"
@@ -148,7 +148,7 @@ class Binance():
         data = self.signed_request("GET", "/sapi/v1/margin/myTrades", params)
         return data
 
-    def spot_order(self, symbol, side, quantity, order_type, **kwargs):
+    def spot_order(self, symbol, side, quantity, order_type, test=False, **kwargs):
         """Send in a new order.
 
         Args:
@@ -179,7 +179,7 @@ class Binance():
             }
 
         params.update(kwargs)
-        path = "/api/v3/order"
+        path = "/api/v3/order/test" if test else "/api/v3/order"
         data = self.signed_request("POST", path, params)
         return data
 
