@@ -20,7 +20,7 @@ class Binance():
         self.sell = "SELL"
         self.limit = "LIMIT"
         self.market = "MARKET"
-        self.options = {"api_key":api_key, "secret":secret}
+        self.options = {"apiKey":api_key, "secret":secret}
 
     def prices(self):
         """Get latest prices for all symbols."""
