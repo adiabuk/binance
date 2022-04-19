@@ -261,13 +261,17 @@ class Binance():
         data = self.signed_request("DELETE", "/api/v3/order", params)
         return data
 
-    def get_max_borrow(self):
+    def get_max_borrow(self, asset='USDT', isolated_pair=None):
         """
         Max amount left to borrow in USDT from cross margin account
         """
 
-        params = {"asset": "USDT"}
+        if isolated_pair:
+            params = {"asset": asset, "isolatedSymbol": isolated_pair}
+        else:
+            params = {"asset": asset}
         data = self.signed_request("GET", "/sapi/v1/margin/maxBorrowable", params)
+
         return float(data['amount'])
 
     def get_margin_debt(self):
