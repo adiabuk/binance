@@ -127,11 +127,8 @@ class Binance():
         """
         Get list of pairs that support isolated margin trading
         """
-        pairs = []
-        for key, value in self.exchange_info().items():
-            if value["isMarginTradingAllowed"]:
-                pairs.append(key)
-        return pairs
+        data = self.signed_request("GET", "/sapi/v1/margin/isolated/allPairs", {})
+        return [x['symbol'] for x in data]
 
     def exchange_info(self):
         """get exchange_info for all sumbols"""
