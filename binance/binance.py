@@ -272,8 +272,7 @@ class Binance():
         else:
             params = {"asset": asset}
         data = self.signed_request("GET", "/sapi/v1/margin/maxBorrowable", params)
-
-        return float(data['amount'])
+        return float(data['amount']) if 'amount' in data else 0
 
     def get_margin_debt(self):
         """
