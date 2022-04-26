@@ -14,6 +14,10 @@ except ImportError:
     from urllib.parse import urlencode
 
 class Binance():
+    """
+    Provide methods for interacting with binance API
+    """
+
     def __init__(self, api_key=None, secret=None, test=False):
         self.endpoint = "https://testnet.binance.vision" if test else "https://api.binance.com"
         self.buy = "BUY"
