@@ -214,6 +214,24 @@ class Binance():
         data = self.signed_request("POST", path, params)
         return data
 
+    def get_cross_margin_details(self):
+        """
+        Get cross margin account details
+        """
+
+        path = "/sapi/v1/margin/account"
+        data = self.signed_request("GET", path, params={})
+        return data
+
+    def get_isolated_margin_details(self, pair):
+        """
+        Get isolated margin account details
+        """
+
+        path = "/sapi/v1/margin/isolated/account"
+        data = self.signed_request("GET", path, params={'symbols':pair})
+        return data
+
     def margin_order(self, symbol, side, quantity, order_type, isolated=False, **kwargs):
         """
         Open a margin trade
