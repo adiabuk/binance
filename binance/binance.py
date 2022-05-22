@@ -106,7 +106,7 @@ class Binance():
             raise ValueError("Error from exchange: {}".format(data['msg']))
 
         return {d["asset"]: {
-            "net": d["netAsset"]
+            "net": d["free"]
             } for d in data.get("userAssets", [])}
 
     def isolated_balances(self):
