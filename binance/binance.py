@@ -5,13 +5,10 @@ Spot and margin trading module for binance
 import hmac
 import hashlib
 import time
+from urllib.parse import urlencode
+from urllib3.util.retry import Retry
 import requests
-try:
-    from urllib import urlencode
-
-# for python3
-except ImportError:
-    from urllib.parse import urlencode
+from requests.adapters import HTTPAdapter
 
 class Binance():
     """
@@ -348,11 +345,30 @@ class Binance():
         data = self.signed_request("GET", "/api/v3/myTrades", params)
         return data
 
+    @staticmethod
+    def retry_session(retries, session=None, backoff_factor=0.3):
+        """
+        retry requests session
+        """
+        session = session or requests.Session()
+        retry = Retry(
+            total=retries,
+            read=retries,
+            connect=retries,
+            backoff_factor=backoff_factor,
+            method_whitelist=False,
+        )
+        adapter = HTTPAdapter(max_retries=retry)
+        session.mount('http://', adapter)
+        session.mount('https://', adapter)
+        return session
+
     def request(self, method, path, params=None):
         """
         Make request to API and return result
         """
-        resp = requests.request(method, self.endpoint + path, params=params)
+        session = self.retry_session(retries=5)
+        resp = session.request(method, self.endpoint + path, params=params, timeout=60)
         data = resp.json()
         return data
 
@@ -369,9 +385,11 @@ class Binance():
         signature = hmac.new(secret, query.encode("utf-8"),
                              hashlib.sha256).hexdigest()
         query += "&signature={}".format(signature)
-        resp = requests.request(method,
-                                self.endpoint + path + "?" + query,
-                                headers={"X-MBX-APIKEY": self.options["apiKey"]})
+
+        session = self.retry_session(retries=5)
+        resp = session.request(method,
+                               self.endpoint + path + "?" + query, timeout=60,
+                               headers={"X-MBX-APIKEY": self.options["apiKey"]})
         data = resp.json()
         return data
 
