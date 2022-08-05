@@ -96,7 +96,7 @@ class Binance():
         } for d in data.get("balances", [])}
 
     def margin_balances(self):
-        """Get current net balances for alsymbols in margin account"""
+        """Get current net balances for all symbols in cross margin account"""
 
         data = self.signed_request("GET", "/sapi/v1/margin/account", {'recvWindow': 60000})
         if 'msg' in data:
