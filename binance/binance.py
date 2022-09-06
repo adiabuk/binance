@@ -106,6 +106,18 @@ class Binance():
             "net": d["netAsset"]
             } for d in data.get("userAssets", [])}
 
+    def isolated_free(self):
+        """Get current free balances for alsymbols in isolated account"""
+
+        data = self.signed_request("GET", "/sapi/v1/margin/isolated/account", {'recvWindow': 60000})
+        if 'msg' in data:
+            raise ValueError("Error from exchange: {}".format(data['msg']))
+
+        return {d['symbol']: {d['quoteAsset']['asset']: d['quoteAsset']['free'],
+                              d['baseAsset']['asset']: d['baseAsset']['free']} for d in
+                data.get('assets', {})}
+
+
     def isolated_balances(self):
         """Get current net balances for alsymbols in margin account"""
 
