@@ -5,6 +5,7 @@ Spot and margin trading module for binance
 import hmac
 import hashlib
 import time
+import inspect
 from urllib.parse import urlencode
 from urllib3.util.retry import Retry
 import requests
@@ -105,7 +106,6 @@ class Binance():
         return {d["asset"]: {
             "net": d["free"]
             } for d in data.get("userAssets", [])}
-
 
     def margin_balances(self):
         """Get current net balances for all symbols in cross margin account"""
@@ -393,6 +393,7 @@ class Binance():
         session = self.retry_session(retries=5)
         resp = session.request(method, self.endpoint + path, params=params, timeout=60)
         data = resp.json()
+        print(inspect.stack()[1].function, data)
         return data
 
     def signed_request(self, method, path, params):
@@ -414,6 +415,7 @@ class Binance():
                                self.endpoint + path + "?" + query, timeout=60,
                                headers={"X-MBX-APIKEY": self.options["apiKey"]})
         data = resp.json()
+        print(inspect.stack()[1].function, data)
         return data
 
     @staticmethod
