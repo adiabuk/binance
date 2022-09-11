@@ -16,8 +16,8 @@ class Binance():
     Provide methods for interacting with binance API
     """
 
-    def __init__(self, api_key=None, secret=None, test=False):
-        self.endpoint = "https://testnet.binance.vision" if test else "https://api.binance.com"
+    def __init__(self, api_key=None, secret=None, endpoint="https://api.binance.com"):
+        self.endpoint = endpoint
         self.buy = "BUY"
         self.sell = "SELL"
         self.limit = "LIMIT"
