@@ -16,13 +16,15 @@ class Binance():
     Provide methods for interacting with binance API
     """
 
-    def __init__(self, api_key=None, secret=None, endpoint="https://api.binance.com"):
+    def __init__(self, api_key=None, secret=None, endpoint="https://api.binance.com",
+                 debug=False):
         self.endpoint = endpoint
         self.buy = "BUY"
         self.sell = "SELL"
         self.limit = "LIMIT"
         self.market = "MARKET"
         self.options = {"apiKey":api_key, "secret":secret}
+        self.debug = debug
 
     def prices(self):
         """Get latest prices for all symbols."""
@@ -393,7 +395,8 @@ class Binance():
         session = self.retry_session(retries=5)
         resp = session.request(method, self.endpoint + path, params=params, timeout=60)
         data = resp.json()
-        print(inspect.stack()[1].function, data)
+        if self.debug:
+            print(inspect.stack()[1].function, data)
         return data
 
     def signed_request(self, method, path, params):
@@ -415,7 +418,8 @@ class Binance():
                                self.endpoint + path + "?" + query, timeout=60,
                                headers={"X-MBX-APIKEY": self.options["apiKey"]})
         data = resp.json()
-        print(inspect.stack()[1].function, data)
+        if self.debug:
+            print(inspect.stack()[1].function, data)
         return data
 
     @staticmethod
