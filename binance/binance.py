@@ -266,16 +266,19 @@ class Binance():
             try:
                 amount = self.balances()[asset]['free']
             except KeyError:
+                print("No such asset")
                 return False
 
-        elif  direction == "from_isolated":
+        elif direction == "from_isolated":
             trans_from = "ISOLATED_MARGIN"
             trans_to = "SPOT"
             try:
                 amount = self.isolated_balances()[symbol][asset]
             except KeyError:
+                print("No such symbol or asset {} {}".format(symbol, asset))
                 return False
         else:
+            print("Invalid direction")
             return False
 
         params = {
