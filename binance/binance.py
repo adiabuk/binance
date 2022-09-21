@@ -245,14 +245,53 @@ class Binance():
         data = self.signed_request("GET", path, params={})
         return data
 
-    def get_isolated_margin_details(self, pair):
+    def get_isolated_margin_details(self, pair=None):
         """
         Get isolated margin account details
         """
 
         path = "/sapi/v1/margin/isolated/account"
-        data = self.signed_request("GET", path, params={'symbols':pair})
+        params = {'symbols':pair} if pair else {}
+        data = self.signed_request("GET", path, params=params)
+
         return data
+
+    def transfer_isolated(self, asset, symbol, direction):
+        """"
+        Transfer assets between isolated margin and spot accounts
+        """
+        if direction == "to_isolated":
+            trans_from = "SPOT"
+            trans_to = "ISOLATED_MARGIN"
+            try:
+                amount = self.balances()[asset]['free']
+            except KeyError:
+                return False
+
+        elif  direction == "from_isolated":
+            trans_from = "ISOLATED_MARGIN"
+            trans_to = "SPOT"
+            try:
+                amount = self.isolated_balances()[symbol][asset]
+            except KeyError:
+                return False
+        else:
+            return False
+
+        params = {
+            "asset": asset,
+            "symbol": symbol,
+            "transFrom": trans_from,
+            "transTo": trans_to,
+            "amount": amount
+        }
+        path = "/sapi/v1/margin/isolated/transfer"
+        if float(amount) > 0:
+            data = self.signed_request("POST", path, params)
+            return data
+        else:
+            return False
+
 
     def margin_order(self, symbol, side, quantity, order_type, isolated=False, **kwargs):
         """
