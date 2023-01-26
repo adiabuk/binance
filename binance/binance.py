@@ -2,6 +2,8 @@
 """
 Spot and margin trading module for binance
 """
+
+import random
 import hmac
 import hashlib
 import time
@@ -16,9 +18,12 @@ class Binance():
     Provide methods for interacting with binance API
     """
 
-    def __init__(self, api_key=None, secret=None, endpoint="https://api.binance.com",
+    def __init__(self, api_key=None, secret=None, endpoint="",
                  debug=False):
-        self.endpoint = endpoint
+        self.endpoint = endpoint if endpoint else random.choice(["https://api.binance.com",
+                                                                 "https://api1.binance.com",
+                                                                 "https://api2.binance.com",
+                                                                 "https://api3.binance.com"])
         self.buy = "BUY"
         self.sell = "SELL"
         self.limit = "LIMIT"
@@ -294,7 +299,6 @@ class Binance():
             return data
         else:
             return False
-
 
     def margin_order(self, symbol, side, quantity, order_type, isolated=False, **kwargs):
         """
