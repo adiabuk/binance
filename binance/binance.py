@@ -443,6 +443,8 @@ class Binance():
         data = resp.json()
         if self.debug:
             print(inspect.stack()[1].function, data)
+        else:
+            print("Calling binance api path ", path)
         return data
 
     def signed_request(self, method, path, params):
@@ -466,6 +468,8 @@ class Binance():
         data = resp.json()
         if self.debug:
             print(inspect.stack()[1].function, data)
+        else:
+            print("Calling binance api path ", path)
         return data
 
     @staticmethod
